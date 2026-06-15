@@ -1,0 +1,74 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. Global Catch-All Deny Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Helper Functions ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // --- Users Collection ---
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && request.auth.uid == userId
+        && request.resource.data.username is string
+        && request.resource.data.username.size() >= 2
+        && request.resource.data.username.size() <= 32
+        && request.resource.data.total_score == 0;
+      allow update: if isSignedIn() && (
+        (request.auth.uid == userId 
+          && request.resource.data.username is string 
+          && request.resource.data.total_score is int)
+        ||
+        (request.resource.data.username == resource.data.username
+          && request.resource.data.avatar_url == resource.data.avatar_url
+          && request.resource.data.total_score is int)
+      );
+    }
+
+    // --- Games Collection ---
+    match /games/{gameId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn()
+        && request.resource.data.room_code is string
+        && request.resource.data.room_code.size() == 4
+        && request.resource.data.owner_id == request.auth.uid
+        && request.resource.data.status == 'active';
+      allow update: if isSignedIn()
+        && (resource.data.owner_id == request.auth.uid || request.resource.data.status == resource.data.status);
+    }
+
+    // --- Game Players Subcollection ---
+    match /games/{gameId}/players/{userId} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn();
+    }
+
+    // --- Game History Collection ---
+    match /game_history/{historyId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+    }
+
+    // --- Achievements Collection ---
+    match /achievements/{achievementId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn()
+        && request.resource.data.user_id is string
+        && request.resource.data.achievement_name is string
+        && request.resource.data.photo_url is string;
+    }
+  }
+}

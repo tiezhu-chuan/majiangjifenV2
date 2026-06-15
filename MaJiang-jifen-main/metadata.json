@@ -1,0 +1,8 @@
+{
+  "name": "麻将记分辅助",
+  "description": "手机端线下麻将积分记录、房间实时点对点算分、排名、历史牌局追溯及胡牌成就解锁辅助工具。",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

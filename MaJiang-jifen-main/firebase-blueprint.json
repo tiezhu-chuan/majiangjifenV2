@@ -1,0 +1,93 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile containing account stats",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "username": { "type": "string" },
+        "avatar_url": { "type": "string" },
+        "total_score": { "type": "integer" },
+        "created_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["username", "total_score", "created_at"]
+    },
+    "Game": {
+      "title": "Game",
+      "description": "A mahjong game room record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "room_code": { "type": "string" },
+        "owner_id": { "type": "string" },
+        "status": { "type": "string", "enum": ["active", "ended"] },
+        "created_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["room_code", "owner_id", "status", "created_at"]
+    },
+    "GamePlayer": {
+      "title": "GamePlayer",
+      "description": "Player participating in an active game room",
+      "type": "object",
+      "properties": {
+        "user_id": { "type": "string" },
+        "username": { "type": "string" },
+        "avatar_url": { "type": "string" },
+        "current_score": { "type": "integer" }
+      },
+      "required": ["user_id", "username", "current_score"]
+    },
+    "GameHistory": {
+      "title": "GameHistory",
+      "description": "Aggregated history record of a player after a game ends",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "game_id": { "type": "string" },
+        "user_id": { "type": "string" },
+        "score": { "type": "integer" },
+        "ended_at": { "type": "string", "format": "date-time" },
+        "game_code": { "type": "string" },
+        "players": { "type": "array" }
+      },
+      "required": ["game_id", "user_id", "score", "ended_at", "game_code"]
+    },
+    "Achievement": {
+      "title": "Achievement",
+      "description": "Mahjong achievement unlocked with photos",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "user_id": { "type": "string" },
+        "achievement_name": { "type": "string" },
+        "photo_url": { "type": "string" },
+        "unlocked_at": { "type": "string", "format": "date-time" },
+        "game_id": { "type": "string" }
+      },
+      "required": ["user_id", "achievement_name", "photo_url", "unlocked_at"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "User profiles indexed by their Auth UID"
+    },
+    "/games/{gameId}": {
+      "schema": { "$ref": "#/entities/Game" },
+      "description": "Game rooms containing current session details"
+    },
+    "/games/{gameId}/players/{userId}": {
+      "schema": { "$ref": "#/entities/GamePlayer" },
+      "description": "Players in the game, each record maintaining current score"
+    },
+    "/game_history/{historyId}": {
+      "schema": { "$ref": "#/entities/GameHistory" },
+      "description": "Individual players final score records for ended games"
+    },
+    "/achievements/{achievementId}": {
+      "schema": { "$ref": "#/entities/Achievement" },
+      "description": "Achievements wall details unlocked with photo assets"
+    }
+  }
+}
